@@ -4,26 +4,16 @@
 
 ### DONE ✓
 
-- [x] Interactive TUI orchestrator (`just tui`)
-- [x] Multi-agent dispatch (18 agents)
-- [x] Theme system (11 themes)
-- [x] Team/chain configs
-- [x] Damage control YAML parser
+- [x] Interactive chat (infinite turns)
 - [x] Session persistence
-- [x] Just commands (40+ recipes)
-- [x] Update docs
+- [x] Commands (quit, clear, models)
+- [x] Justfile integration
+- [x] System prompt with sub-agents info
 
-### IN PROGRESS
+### Todo
 
-- [ ] Interactive mode with chat loop
-
-### PENDING
-
-- [ ] Rewrite damagecontroll.ex to Elixir
-- [ ] Connect agent-chain.ts for chain execution
-- [ ] Connect agent-team.ts for team execution
-
-### NOT BEING USED (cleanup later)
-
-- `/home/zerwiz/woh/lib/alloy/*` - Elixir backend
-- `/home/zerwiz/woh/config/config.exs` - Disabled
+- [ ] Add tool execution (read, write, ls, bash)
+- [ ] Add sub-agent dispatch (@builder, @scanner, etc.)
+- [ ] Add team mode
+- [ ] Add chain mode
+- [ ] Add damage control

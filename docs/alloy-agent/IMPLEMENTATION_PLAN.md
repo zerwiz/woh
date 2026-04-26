@@ -6,25 +6,18 @@ Interactive AI coding agent with chat interface like pi.dev, using local Ollama 
 
 ---
 
-## Files Being Used NOW (April 26, 2026)
+## Files
 
-### MAIN ENTRY POINTS
 | File | Purpose |
 |------|---------|
-| `/home/zerwiz/woh/src/cli-tui.ts` | Interactive chat CLI |
-| `/home/zerwiz/woh/src/cli.ts` | Simple CLI (non-interactive) |
+| `/home/zerwiz/woh/src/cli-tui.ts` | Interactive chat CLI (main entry) |
+| `/home/zerwiz/woh/src/cli.ts` | Single prompt CLI |
 | `/home/zerwiz/woh/justfile` | Just commands |
 
-### Core Library (`/home/zerwiz/woh/src/lib/`)
-| File | Purpose |
-|------|---------|
-| `damage-control.ts` | Parse YAML rules |
-| `themes.ts` | Theme loader |
-| `agents.ts` | Agent loader |
-| `modes.ts` | Team/chain configs |
-| `memory.ts` | Session persistence |
+---
 
-### Run Commands
+## Run
+
 ```bash
 # Interactive chat (main agent)
 just tui
@@ -32,47 +25,25 @@ cd /home/zerwiz/woh/src && npx tsx cli-tui.ts
 
 # Single prompt
 just cli "Hello"
-cd /home/zerwiz/woh/src && npx tsx cli.ts "Hello"
 ```
 
 ---
 
-## Interactive Commands
+## Commands
 
 ```
->                      - Type your message
-/clear or /c          - Clear conversation
-/models               - List available models
-/quit or /q or /exit  - Exit and save session
+quit / q / exit  - Exit and save session
+clear / c         - Clear conversation
+models           - List available models
 ```
 
 ---
 
-## Features Working ✓
+## Features
 
-- [x] Interactive chat with main agent
-- [x] Session persistence (saves to `~/.alloy/state.json`)
-- [x] Commands: /clear, /models, /quit
-- [x] Ollama integration (local models)
+- [x] Interactive chat with infinite turns
+- [x] Session persistence (`~/.alloy/state.json`)
+- [x] Commands: quit, clear, models
+- [x] Ollama integration
 - [x] Default model: qwen3.5:9b
-
----
-
-## Todo
-
-- [x] Interactive chat working
-- [ ] Add tools (read, write, ls, bash)
-- [ ] Add agent dispatch (@builder, @scanner, etc.)
-- [ ] Add team mode
-- [ ] Add chain mode
-- [ ] Add theme switching
-- [ ] Add damage control
-
----
-
-## Not Being Used (Cleanup Later)
-
-- `/home/zerwiz/woh/src/agent-chain.ts` - Complex chain UI
-- `/home/zerwiz/woh/src/agent-team.ts` - Complex team UI
-- `/home/zerwiz/woh/src/ui/` - TUI components
-- `/home/zerwiz/woh/lib/alloy/*` - Elixir backend
+- [x] Sub-agent system prompt (for future dispatch)

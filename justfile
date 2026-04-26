@@ -1,154 +1,67 @@
 # Alloy Agent - Main justfile
-# Run all UI modes and configurations
 
 set dotenv-load := true
 
-DEFAULT_MODEL := "qwen3.5:9b"
-OLLAMA_URL := "http://localhost:11434"
-SRC_DIR := "/home/zerwiz/woh/src"
-
-# Default: show help
 default:
     @just --list
 
-# ==================== Core CLI ====================
+# ==================== Main Interactive ====================
 
-# Interactive chat (main agent - default)
-tui:
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts
+# Full chat with all features
+cli:
+	cd /home/zerwiz/woh/src && npx tsx cli-tui.ts
 
-# Simple CLI (non-interactive - single prompt)
-cli TASK="":
-    cd /home/zerwiz/woh/src && npx tsx cli.ts "{{ TASK }}"
+tui: cli
 
-# ==================== UI Modes ====================
+# ==================== Different UIs ====================
 
-# Agent chain mode (sequential pipeline)
-chain CHAIN TASK="":
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "--chain {{ CHAIN }} {{ TASK }}"
+# Chat mode
+chat:
+	cd /home/zerwiz/woh/src && npx tsx cli-tui.ts
 
-# Agent team mode (parallel dispatch)
-team TEAM TASK="":
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "--team {{ TEAM }} {{ TASK }}"
+# Team mode - parallel agents
+team:
+	cd /home/zerwiz/woh/src && npx tsx agent-team.ts
 
-# ==================== Full UI Files ====================
+# Chain mode - sequential
+chain:
+	cd /home/zerwiz/woh/src && npx tsx agent-chain.ts
 
-# agent-chain.ts
-agent-chain TASK="":
-    cd /home/zerwiz/woh/src && npx tsx agent-chain.ts "{{ TASK }}"
+# TillDone - tasks
+todo:
+	cd /home/zerwiz/woh/src && npx tsx tilldone.ts
 
-# agent-team.ts
-agent-team TASK="":
-    cd /home/zerwiz/woh/src && npx tsx agent-team.ts "{{ TASK }}"
+# Subagent - background workers
+subagent:
+	cd /home/zerwiz/woh/src && npx tsx subagent-widget.ts
 
-# subagent-widget.ts
-subagent-widget TASK="":
-    cd /home/zerwiz/woh/src && npx tsx subagent-widget.ts "{{ TASK }}"
+# ==================== Info ====================
 
-# tilldone.ts
-tilldone TASK="":
-    cd /home/zerwiz/woh/src && npx tsx tilldone.ts "{{ TASK }}"
-
-# tool-counter-widget.ts
-tool-counter-widget TASK="":
-    cd /home/zerwiz/woh/src && npx tsx tool-counter-widget.ts "{{ TASK }}"
-
-# ==================== Agent Dispatch ====================
-
-dispatch AGENT TASK:
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "@{{ AGENT }} {{ TASK }}"
-
-architect TASK="@architect":
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "@architect {{ TASK }}"
-
-builder TASK="@builder":
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "@builder {{ TASK }}"
-
-scanner TASK="@scanner":
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "@scanner {{ TASK }}"
-
-tester TASK="@tester":
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "@tester {{ TASK }}"
-
-frontend TASK="@frontend":
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "@frontend {{ TASK }}"
-
-planner TASK="@planner":
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "@planner {{ TASK }}"
-
-reviewer TASK="@reviewer":
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "@reviewer {{ TASK }}"
-
-# ==================== Theme Commands ====================
-
-theme NAME:
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "--theme {{ NAME }}"
-
-themes:
-    cd /home/zerwiz/woh/src && npx tsx lib/themes.ts
-
-theme-cycle:
-    cd /home/zerwiz/woh/src && npx tsx theme-cycler.ts
-
-# ==================== Tool Commands ====================
-
-ls DIR=".":
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "ls {{ DIR }}"
-
-read FILE:
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "read {{ FILE }}"
-
-write FILE CONTENT:
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "write {{ FILE }} {{ CONTENT }}"
-
-grep PATTERN DIR=".":
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "grep {{ PATTERN }} {{ DIR }}"
-
-bash CMD:
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "bash {{ CMD }}"
-
-# ==================== Damage Control ====================
-
-check CMD:
-    cd /home/zerwiz/woh/src && npx tsx lib/damage-control.ts "{{ CMD }}"
-
-# ==================== Memory/Sessions ====================
-
-state:
-    cd /home/zerwiz/woh/src && npx tsx lib/memory.ts
-
-new-session NAME="default":
-    cd /home/zerwiz/woh/src && npx tsx lib/memory.ts "new {{ NAME }}"
-
-# ==================== Teams & Chains ====================
-
-teams:
-    cd /home/zerwiz/woh/src && npx tsx lib/modes.ts
-
-chains:
-    cd /home/zerwiz/woh/src && npx tsx lib/modes.ts
+models:
+	@echo "qwen3.5:9b"
 
 agents:
-    cd /home/zerwiz/woh/src && npx tsx lib/agents.ts
+	@echo "architect, builder, scanner, tester, frontend, planner, reviewer"
 
-# ==================== Common Tasks ====================
+teams:
+	@echo "all, development, testing, review, code-review"
+
+chains:
+	@echo "plan-build, plan-build-review, full-review"
+
+themes:
+	@echo "nord, dracula, catppuccin, synthwave, tokyo"
+
+# ==================== Quick Tasks ====================
 
 analyze:
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "@architect Analyze the project structure"
-
-build FILE CONTENT:
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "@builder Create {{ FILE }} with {{ CONTENT }}"
+	cd /home/zerwiz/woh/src && npx tsx cli-tui.ts
 
 scan:
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "@scanner List all TypeScript files"
+	cd /home/zerwiz/woh/src && npx tsx cli-tui.ts
 
 test:
-    cd /home/zerwiz/woh/src && npx tsx cli-tui.ts "@tester Run the test suite"
+	cd /home/zerwiz/woh/src && npx tsx cli-tui.ts
 
-# ==================== Alloy Agent ====================
-
-start TASK="":
-    /home/zerwiz/woh/alloy_agent/start.sh "{{ TASK }}"
-
-just RECIPE ARGS="":
-    just {{ RECIPE }} {{ ARGS }}
+run TASK:
+	cd /home/zerwiz/woh/src && npx tsx cli.ts "{{ TASK }}"
