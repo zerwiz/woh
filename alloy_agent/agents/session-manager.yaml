@@ -1,0 +1,14 @@
+# Session Manager Agent Team Configuration
+# This YAML file defines how session manager agents work together
+
+session-management-flow:
+  description: "Complete session management workflow - query, list, and manage sessions"
+  steps:
+    - agent: session-manager
+      prompt: "List all available sessions and provide metadata for: $INPUT"
+
+session-analysis-flow:
+  description: "Analyze sessions deep-dive analysis"
+  steps:
+    - agent: session-manager
+      prompt: "Extract and analyze the complete content of session: $SESSION_ID\n\nKey events in session:\n$INPUT"

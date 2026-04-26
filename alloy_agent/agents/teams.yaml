@@ -1,0 +1,51 @@
+# Alloy Agent Team Configuration
+# Defines specialist agents and their team memberships
+
+all:
+  - architect
+  - builder
+  - scanner
+  - tester
+
+development:
+  - architect
+  - builder
+  - scanner
+  - tester
+
+testing:
+  - scanner
+  - tester
+
+review:
+  - architect
+  - tester
+
+code-review:
+  - scanner
+  - architect
+
+pair-programming:
+  - builder
+  - scanner
+
+# Agent definitions with tools
+architect:
+  description: Architecture agent for decisions
+  tools: []
+  skills: analyze, deduce
+
+builder:
+  description: Builder agent for code implementation
+  tools: write, read
+  skills: synthesize
+
+scanner:
+  description: Scanner agent for discovery
+  tools: read, ls, grep, bash
+  skills: analyze
+
+tester:
+  description: Tester agent for validation
+  tools: bash, read
+  skills: deduce

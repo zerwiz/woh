@@ -1,90 +1,78 @@
 #!/bin/bash
 
-# Alloy Agent Launcher Script
-# Routes all agent operations to /home/zerwiz/woh/alloy-agent
+# Alloy Agent Launcher
+# Starts the TUI with Ollama provider
 
-set -e  # Exit on error
+set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ELIXIR_PATH="/usr/bin/elixir"
+SRC_DIR="/home/zerwiz/woh/src"
+NPM_CMD="npx tsx"
+OLLAMA_URL="http://localhost:11434"
 
 echo "=========================================="
 echo "  Alloy Agent Launcher"
 echo "=========================================="
-echo "Agent Location: ${SCRIPT_DIR}"
+echo "Location: ${SCRIPT_DIR}"
+echo ""
 
-# Function to check and install dependencies
-check_dependencies() {
-    echo ""
-    echo "Checking dependencies..."
-
-    # Check if elixir is installed
-    if [ ! -f "${ELIXIR_PATH}" ]; then
-        echo "Error: Elixir not found at ${ELIXIR_PATH}"
-        echo "Please install Elixir: sudo apt update && sudo apt install elixir erlang"
-        exit 1
+# Function to check Ollama
+check_ollama() {
+    echo "Checking Ollama at ${OLLAMA_URL}..."
+    if curl -s "${OLLAMA_URL}/api/tags" > /dev/null 2>&1; then
+        echo "Ollama is running."
+        return 0
+    else
+        echo "Error: Ollama not running at ${OLLAMA_URL}"
+        echo "Start Ollama with: ollama serve"
+        return 1
     fi
-
-    # Check if lib directory exists
-    if [ ! -d "${SCRIPT_DIR}/lib" ]; then
-        echo "Error: lib directory not found"
-        echo "The agent code should be in ${SCRIPT_DIR}/lib"
-        exit 1
-    fi
-
-    # Check if mix.lock exists (dependencies)
-    if [ ! -f "${SCRIPT_DIR}/mix.lock" ]; then
-        echo "No mix.lock found. Getting dependencies..."
-        mix deps.get || {
-            echo "Failed to get dependencies"
-            exit 1
-        }
-    fi
-}
-
-# Function to compile the agent
-compile_agent() {
-    echo "Compiling agent..."
-    mix compile || {
-        echo "Compilation failed"
-        exit 1
-    }
 }
 
 # Function to run the agent
 run_agent() {
-    echo "Starting alloy agent..."
-    echo "Run file: ${SCRIPT_DIR}/lib/alloy_agent.ex"
-
-    # Check if the run file exists
-    if [ ! -f "${SCRIPT_DIR}/lib/alloy_agent.ex" ]; then
-        echo "Warning: alloy_agent.ex not found, trying to run from root lib..."
-        # Try to find and run the agent
-        RUN_FILE=$(find "${SCRIPT_DIR}/lib" -name "alloy_agent.ex" 2>/dev/null | head -1)
-
-        if [ -n "${RUN_FILE}" ]; then
-            echo "Found: ${RUN_FILE}"
-        else
-            echo "Error: Could not find alloy_agent.ex"
-            exit 1
-        fi
+    cd "${SRC_DIR}"
+    
+    if [ $# -eq 0 ]; then
+        # No args - show help
+        echo ""
+        echo "Usage: ./start.sh '<task>'"
+        echo "       ./start.sh '@architect design a system'"
+        echo "       ./start.sh '@scanner ls src'"
+        echo ""
+        echo "Examples:"
+        echo "  ./start.sh 'What is the project structure?'"
+        echo "  ./start.sh '@builder create a new file'"
+        echo "  ./start.sh '@scanner ls /home/zerwiz/woh/src'"
+        echo ""
+        echo "Tools: read, write, ls, grep, bash"
+        echo "Skills: analyze, deduce, synthesize"
+        echo "Agents: architect, builder, scanner, tester"
+        echo ""
+        echo "To dispatch to a specific agent, use @agent syntax:"
+        echo "  @architect <task>  - Architecture decisions"
+        echo "  @builder <task>     - Code implementation"  
+        echo "  @scanner <task>    - Discovery & file operations"
+        echo "  @tester <task>     - Validation"
+        echo ""
+        exit 0
     fi
-
-    # Run the agent
-    elixir -S mix run "${SCRIPT_DIR}/lib/alloy_agent.ex"
+    
+    echo "Starting Alloy Agent TUI..."
+    echo ""
+    
+    ${NPM_CMD} cli-tui.ts "$@"
 }
 
 # Main execution
-echo ""
-echo "Running alloy agent..."
-
-# Execute with proper routing
-if check_dependencies && compile_agent; then
-    run_agent
+if check_ollama; then
+    run_agent "$@"
 else
-    echo "Failed to start alloy agent"
+    echo ""
+    echo "Please start Ollama first:"
+    echo "  ollama serve"
     exit 1
 fi
 
 echo ""
-echo "Agent finished (or running in background)"
+echo "Agent finished"

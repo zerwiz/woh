@@ -1,0 +1,134 @@
+# Alloy Agent justfile
+# Run the agent with different configurations
+
+set dotenv-load := true
+
+DEFAULT_MODEL := "qwen3.5:9b"
+OLLAMA_URL := "http://localhost:11434"
+AGENT_DIR := "/home/zerwiz/woh/src"
+CLI := "npx tsx " + AGENT_DIR + "/cli"
+CLI_TUI := "npx tsx " + AGENT_DIR + "/cli-tui"
+START_SCRIPT := "/home/zerwiz/woh/alloy_agent/start.sh"
+
+default:
+    @just --list
+
+# ==================== Basic Commands ====================
+
+help:
+    {{ CLI_TUI }}
+
+hello:
+    {{ CLI }} "Hello, how are you?"
+
+# ==================== CLI Modes ====================
+
+# Simple CLI chat
+cli TASK:
+    {{ CLI }} "{{ TASK }}"
+
+# Full TUI with teams and themes
+tui TASK:
+    {{ CLI_TUI }} "{{ TASK }}"
+
+# Chain execution
+chain CHAIN TASK:
+    {{ CLI_TUI }} "--chain {{ CHAIN }} {{ TASK }}"
+
+# Team execution
+team TEAM TASK:
+    {{ CLI_TUI }} "--team {{ TEAM }} {{ TASK }}"
+
+# ==================== Agent Dispatch ====================
+
+# Dispatch to any agent (18 total)
+dispatch AGENT TASK:
+    {{ CLI_TUI }} "@{{ AGENT }} {{ TASK }}"
+
+architect TASK:
+    {{ CLI_TUI }} "@architect {{ TASK }}"
+
+builder TASK:
+    {{ CLI_TUI }} "@builder {{ TASK }}"
+
+scanner TASK:
+    {{ CLI_TUI }} "@scanner {{ TASK }}"
+
+tester TASK:
+    {{ CLI_TUI }} "@tester {{ TASK }}"
+
+frontend TASK:
+    {{ CLI_TUI }} "@frontend {{ TASK }}"
+
+planner TASK:
+    {{ CLI_TUI }} "@planner {{ TASK }}"
+
+reviewer TASK:
+    {{ CLI_TUI }} "@reviewer {{ TASK }}"
+
+# ==================== Theme Commands ====================
+
+# Set theme
+theme NAME:
+    {{ CLI_TUI }} "--theme {{ NAME }}"
+
+# List available themes
+themes:
+    npx tsx {{ AGENT_DIR }}/lib/themes.ts
+
+# ==================== Team Commands ====================
+
+# Set team
+team-set NAME:
+    {{ CLI_TUI }} "--team {{ NAME }}"
+
+# List teams
+teams:
+    npx tsx {{ AGENT_DIR }}/lib/modes.ts
+
+# ==================== Tool Commands ====================
+
+ls-dot:
+    {{ CLI_TUI }} "ls ."
+
+ls-src:
+    {{ CLI_TUI }} "ls ./src"
+
+ls-alloy:
+    {{ CLI_TUI }} "ls ./alloy_agent"
+
+grep-src PATTERN:
+    {{ CLI_TUI }} "grep {{ PATTERN }} ./src"
+
+read FILE:
+    {{ CLI_TUI }} "read {{ FILE }}"
+
+# ==================== Damage Control ====================
+
+# Test damage control
+check CMD:
+    npx tsx {{ AGENT_DIR }}/lib/damage-control.ts "{{ CMD }}"
+
+# ==================== Full Tasks ====================
+
+analyze:
+    {{ CLI_TUI }} "@architect Analyze the project structure"
+
+build FILE CONTENT:
+    {{ CLI_TUI }} "@builder Create a new file {{ FILE }} with {{ CONTENT }}"
+
+scan:
+    {{ CLI_TUI }} "@scanner List all TypeScript files in the project"
+
+test:
+    {{ CLI_TUI }} "@tester Run the test suite"
+
+# ==================== Memory/Session ====================
+
+# Show session state
+state:
+    npx tsx {{ AGENT_DIR }}/lib/memory.ts
+
+# New session
+new-session NAME="default":
+    npx tsx {{ AGENT_DIR }}/lib/memory.ts "{{ NAME }}"

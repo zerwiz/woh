@@ -1,0 +1,43 @@
+#!/bin/bash
+# Alloy Agent - Different Agent Launchers
+# Usage: ./agents/architect "task", ./agents/scanner "task", etc.
+
+AGENT_DIR="/home/zerwiz/woh/src"
+START="/home/zerwiz/woh/alloy_agent/start.sh"
+
+agent="$1"
+shift
+
+case "$agent" in
+    architect)
+        $START "@architect $*"
+        ;;
+    builder)
+        $START "@builder $*"
+        ;;
+    scanner)
+        $START "@scanner $*"
+        ;;
+    tester)
+        $START "@tester $*"
+        ;;
+    all)
+        $START "$@"
+        ;;
+    *)
+        echo "Usage: $0 <agent> <task>"
+        echo ""
+        echo "Agents:"
+        echo "  architect - Architecture decisions"
+        echo "  builder   - Code implementation"
+        echo "  scanner   - Discovery & file ops"
+        echo "  tester    - Validation"
+        echo ""
+        echo "Examples:"
+        echo "  $0 architect design a system"
+        echo "  $0 builder create file.txt"
+        echo "  $0 scanner ls ."
+        echo "  $0 tester run tests"
+        exit 1
+        ;;
+esac
