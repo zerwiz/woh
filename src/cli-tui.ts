@@ -10,16 +10,197 @@
  * - Subagent widget (from subagent-widget) - Background agents
  * - TillDone (from tilldone) - Task tracking
  * - Theme cycling (from theme-cycler)
+ * - Tool execution (!read, !write, !ls, !bash)
+ * - Indexer subagent (scans dirs, spawns per-file agents)
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
-import { join } from "path";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync } from "fs";
+import { join, extname, basename } from "path";
+import { spawn } from "child_process";
 
 const OLLAMA_URL = "http://localhost:11434";
 const DEFAULT_MODEL = "qwen3.5:9b";
 const STATE_FILE = join(process.env.HOME || "/home/zerwiz", ".alloy", "state.json");
 const SUBAGENTS_FILE = join(process.env.HOME || "/home/zerwiz", ".alloy", "subagents.json");
 const TASKS_FILE = join(process.env.HOME || "/home/zerwiz", ".alloy", "tasks.json");
+const INDEX_FILE = join(process.env.HOME || "/home/zerwiz", ".alloy", "index.json");
+const INDEX_MD = join(process.env.HOME || "/home/zerwiz", ".alloy", "index.md");
+
+interface FileInfo {
+  path: string;
+  type: string;
+  size: number;
+  modified: number;
+}
+
+interface IndexedFile {
+  path: string;
+  ext: string;
+  size: number;
+  info?: string;
+}
+
+const projectIndex: IndexedFile[] = [];
+
+let lastIndexDir = "";
+
+function generateIndexMarkdown(): string {
+  const byExt: Record<string, IndexedFile[]> = {};
+  for (const f of projectIndex) {
+    if (!byExt[f.ext]) byExt[f.ext] = [];
+    byExt[f.ext].push(f);
+  }
+  
+  let md = `# Project Index\n\n`;
+  md += `Last updated: ${new Date().toISOString()}\n`;
+  md += `Directory: ${lastIndexDir}\n`;
+  md += `Total files: ${projectIndex.length}\n\n`;
+  md += `## By Extension\n\n`;
+  
+  for (const [ext, files] of Object.entries(byExt).sort((a, b) => b[1].length - a[1].length)) {
+    md += `### .${ext} (${files.length} files)\n\n`;
+    for (const f of files.slice(0, 20)) {
+      md += `- \`${f.path}\` (${f.size} bytes)\n`;
+    }
+    if (files.length > 20) {
+      md += `- ... and ${files.length - 20} more\n`;
+    }
+    md += `\n`;
+  }
+  
+  return md;
+}
+
+function runCommand(cmd: string): Promise<string> {
+  return new Promise((resolve) => {
+    const parts = cmd.split(" ");
+    const proc = spawn(parts[0], parts.slice(1), { shell: true });
+    let output = "";
+    proc.stdout.on("data", (d) => output += d.toString());
+    proc.stderr.on("data", (d) => output += d.toString());
+    proc.on("close", () => resolve(output));
+  });
+}
+
+function searchFiles(pattern: string, dir: string, maxFiles = 100): [string, number[]][] {
+  const matches: [string, number[]][] = [];
+  const regex = new RegExp(pattern);
+  
+  function walk(path: string, depth: number) {
+    if (depth > 3 || matches.length >= maxFiles) return;
+    try {
+      const entries = readdirSync(path);
+      for (const entry of entries) {
+        if (entry.startsWith(".")) continue;
+        const fullPath = join(path, entry);
+        const stats = statSync(fullPath);
+        if (stats.isDirectory()) {
+          walk(fullPath, depth + 1);
+        } else {
+          try {
+            const content = readFileSync(fullPath, "utf-8");
+            const lines: number[] = [];
+            content.split("\n").forEach((line, i) => {
+              if (regex.test(line)) lines.push(i + 1);
+            });
+            if (lines.length > 0) {
+              matches.push([fullPath, lines]);
+            }
+          } catch { }
+        }
+      }
+    } catch { }
+  }
+  
+  walk(dir, 0);
+  return matches;
+}
+
+function globFiles(pattern: string, dir = "."): string[] {
+  const files: string[] = [];
+  const regex = new RegExp(pattern.replace(/\*/g, ".*").replace(/\?/g, "."));
+  
+  function walk(path: string, depth: number) {
+    if (depth > 4 || files.length > 500) return;
+    try {
+      const entries = readdirSync(path);
+      for (const entry of entries) {
+        if (entry.startsWith(".")) continue;
+        const fullPath = join(path, entry);
+        const stats = statSync(fullPath);
+        if (stats.isDirectory()) {
+          walk(fullPath, depth + 1);
+        } else if (regex.test(entry)) {
+          files.push(fullPath);
+        }
+      }
+    } catch { }
+  }
+  
+  walk(dir, 0);
+  return files;
+}
+
+function buildTree(dir: string, maxDepth = 3): string {
+  let output = "";
+  
+  function walk(path: string, prefix = "", depth: number) {
+    if (depth > maxDepth) return;
+    try {
+      const entries = readdirSync(path).filter(e => !e.startsWith("."));
+      entries.sort((a, b) => {
+        const aIsDir = statSync(join(path, a)).isDirectory();
+        const bIsDir = statSync(join(path, b)).isDirectory();
+        if (aIsDir !== bIsDir) return aIsDir ? -1 : 1;
+        return a.localeCompare(b);
+      });
+      
+      entries.forEach((entry, i) => {
+        const fullPath = join(path, entry);
+        const isDir = statSync(fullPath).isDirectory();
+        const last = i === entries.length - 1;
+        output += `${prefix}${last ? "└── " : "├── "}${entry}${isDir ? "/" : ""}\n`;
+        if (isDir) {
+          walk(fullPath, prefix + (last ? "    " : "│   "), depth + 1);
+        }
+      });
+    } catch { }
+  }
+  
+  output += dir + "/\n";
+  walk(dir, "", 0);
+  return output;
+}
+
+function scanDirectory(dir: string, maxDepth = 3): FileInfo[] {
+  const files: FileInfo[] = [];
+  
+  function walk(path: string, depth: number) {
+    if (depth > maxDepth) return;
+    try {
+      const entries = readdirSync(path);
+      for (const entry of entries) {
+        if (entry.startsWith(".")) continue;
+        const fullPath = join(path, entry);
+        const stats = statSync(fullPath);
+        if (stats.isDirectory()) {
+          walk(fullPath, depth + 1);
+        } else {
+          const ext = extname(entry);
+          files.push({
+            path: fullPath,
+            type: ext.slice(1) || "file",
+            size: stats.size,
+            modified: stats.mtimeMs
+          });
+        }
+      }
+    } catch { }
+  }
+  
+  walk(dir, 0);
+  return files;
+}
 
 // Available themes
 const THEMES = {
@@ -55,6 +236,21 @@ const SUBAGENTS = {
   coder: "For writing new code",
   reviewer: "For code review",
   tester: "For running tests",
+  indexer: "Scans directories and spawns per-file agents",
+};
+
+const INDEXER_TYPES = {
+  ts: "TypeScript",
+  js: "JavaScript", 
+  tsx: "TSX",
+  jsx: "JSX",
+  json: "JSON",
+  md: "Markdown",
+  py: "Python",
+  rs: "Rust",
+  go: "Go",
+  yaml: "YAML",
+  yml: "YAML",
 };
 
 let theme = "nord";
@@ -102,6 +298,16 @@ ${chainsList}
 - /todo list    - List tasks
 - /todo done N   - Mark task N done
 - /todo clear   - Clear done tasks
+- /index dir    - Index directory (scans and spawns per-file agents)
+
+## Tools (prefix with ! - read only)
+- !read path     - Read file contents
+- !ls [dir]      - List directory contents
+- !grep pat [dir]- Search pattern in files
+- !glob pat      - Find files by pattern
+- !tree [dir]   - Directory tree view
+- !stat path     - File stats/metadata
+- !wc path       - Line/word/char count
 
 ## Sub-Agents (background workers)
 ${subagentList}
@@ -253,6 +459,78 @@ async function main() {
         continue;
       }
       
+      // /indexer spawn - Spawn indexer to scan and create agents for files
+      if (lower === "/indexer spawn" || lower.startsWith("/indexer ")) {
+        const targetDir = cmd.replace(/^\/indexer\s+/, "").trim() || process.cwd();
+        const t = getThemeColors();
+        console.log(`\n${t.accent}Indexer: Spawning agents for ${targetDir}...${RESET}`);
+        
+        const files = scanDirectory(targetDir);
+        console.log(`\n${t.success}Found ${files.length} files${RESET}`);
+        
+        const spawnMatch = lower.match(/\/indexer\s+spawn\s+(.+)$/);
+        const maxAgents = spawnMatch ? 5 : 10;
+        
+        for (const file of files.slice(0, maxAgents)) {
+          const agentName = "file-" + basename(file.path);
+          let fileInfo = "";
+          try {
+            const content = readFileSync(file.path, "utf-8").slice(0, 500);
+            fileInfo = content.slice(0, 200);
+          } catch { fileInfo = "(unreadable)"; }
+          
+          subagentStates[agentName] = {
+            status: "active",
+            task: `Process ${file.type}: ${file.path}`,
+            lastWork: fileInfo
+          };
+        }
+        
+        console.log(`\n${t.success}Spawned ${Math.min(files.length, maxAgents)} file agents${RESET}`);
+        
+        showPrompt();
+        continue;
+      }
+      
+      // /index list - Show indexed files
+      if (lower === "/index list" || lower === "/index") {
+        const t = getThemeColors();
+        if (existsSync(INDEX_MD)) {
+          console.log(`\n${t.success}[Index: ${INDEX_MD}]${RESET}`);
+          console.log(readFileSync(INDEX_MD, "utf-8").slice(0, 3000));
+        } else if (projectIndex.length > 0) {
+          console.log(`\n${t.accent}Current index: ${projectIndex.length} files${RESET}`);
+          const byExt: Record<string, number> = {};
+          for (const f of projectIndex) {
+            byExt[f.ext] = (byExt[f.ext] || 0) + 1;
+          }
+          console.log(`\n${t.accent}By extension:${RESET}`);
+          for (const [ext, count] of Object.entries(byExt).sort((a, b) => b[1] - a[1]).slice(0, 10)) {
+            console.log(`  .${ext}: ${count}`);
+          }
+        } else {
+          console.log(`\nRun /index <directory> first`);
+        }
+        showPrompt();
+        continue;
+      }
+      
+      // /index export - Export to .md
+      if (lower === "/index export" || lower.startsWith("/index export ")) {
+        const targetPath = cmd.replace(/^\/index( export)?\s+/, "").trim() || INDEX_MD;
+        const t = getThemeColors();
+        
+        if (projectIndex.length === 0) {
+          console.log(`\nRun /index <directory> first`);
+        } else {
+          const md = generateIndexMarkdown();
+          writeFileSync(targetPath, md);
+          console.log(`\n${t.success}Exported to ${targetPath}${RESET}`);
+        }
+        showPrompt();
+        continue;
+      }
+      
       // /sub clear - Clear subagents
       if (lower === "/sub clear") {
         const t = getThemeColors();
@@ -396,6 +674,155 @@ async function main() {
       }
       
       if (!cmd) {
+        showPrompt();
+        continue;
+      }
+      
+      // ==================== Tool Execution ====================
+      
+      const toolMatch = cmd.match(/^!(\w+)\s*(.*)$/);
+      if (toolMatch) {
+        const [, tool, args] = toolMatch;
+        const t = getThemeColors();
+        
+        try {
+          if (tool === "read") {
+            const content = readFileSync(args.trim(), "utf-8");
+            console.log(`\n${t.success}[File: ${args.trim()}]${RESET}`);
+            console.log(content.slice(0, 5000));
+          } else if (tool === "ls") {
+            const dir = args.trim() || ".";
+            const files = readdirSync(dir);
+            console.log(`\n${t.success}[Files in ${dir}]${RESET}`);
+            for (const f of files) {
+              const fullPath = join(dir, f);
+              const isDir = statSync(fullPath).isDirectory();
+              console.log(`  ${isDir ? t.accent + "📁" : "📄"} ${f}`);
+            }
+          } else if (tool === "grep") {
+            const parts = args.trim().split(/\s+/);
+            const pattern = parts[0];
+            const dir = parts[1] || ".";
+            const { matches, files } = searchFiles(pattern, dir);
+            console.log(`\n${t.success}[${pattern} in ${dir}]${RESET}`);
+            console.log(`  ${t.accent}Found in ${files.length} files:${RESET}`);
+            for (const [file, lines] of matches.slice(0, 20)) {
+              console.log(`  ${t.accent}${file}${RESET}: ${lines.join(", ")}`);
+            }
+          } else if (tool === "glob") {
+            const pattern = args.trim() || "*";
+            const files = globFiles(pattern);
+            console.log(`\n${t.success}[glob: ${pattern}]${RESET}`);
+            for (const f of files.slice(0, 50)) {
+              console.log(`  ${f}`);
+            }
+            if (files.length > 50) console.log(`  ... and ${files.length - 50} more`);
+          } else if (tool === "tree") {
+            const dir = args.trim() || ".";
+            const tree = buildTree(dir);
+            console.log(`\n${t.success}[Tree: ${dir}]${RESET}`);
+            console.log(tree.slice(0, 3000));
+          } else if (tool === "stat") {
+            const path = args.trim();
+            const stats = statSync(path);
+            console.log(`\n${t.success}[stat: ${path}]${RESET}`);
+            console.log(`  size: ${stats.size}`);
+            console.log(`  isDir: ${stats.isDirectory()}`);
+            console.log(`  isFile: ${stats.isFile()}`);
+            console.log(`  modified: ${new Date(stats.mtime).toISOString()}`);
+          } else if (tool === "wc") {
+            const path = args.trim();
+            const content = readFileSync(path, "utf-8");
+            const lines = content.split("\n").length;
+            const words = content.split(/\s+/).length;
+            const chars = content.length;
+            console.log(`\n${t.success}[wc: ${path}]${RESET}`);
+            console.log(`  lines: ${lines}, words: ${words}, chars: ${chars}`);
+          } else {
+            console.log(`\nUnknown tool: ${tool}`);
+            console.log(`Tools: !read, !ls, !grep, !glob, !tree, !stat, !wc`);
+          }
+        } catch (e: any) {
+          console.log(`\nError: ${e.message}`);
+        }
+        
+        showPrompt();
+        continue;
+      }
+      
+      // ==================== Indexer Subagent ====================
+      
+      const indexerMatch = cmd.match(/^\/index\s+(.+)$/);
+      if (indexerMatch) {
+        const targetDir = indexerMatch[1].trim();
+        const t = getThemeColors();
+        console.log(`\n${t.accent}Indexer: Scanning ${targetDir}...${RESET}`);
+        
+        const files = scanDirectory(targetDir);
+        
+        const byType: Record<string, FileInfo[]> = {};
+        for (const f of files) {
+          if (!byType[f.type]) byType[f.type] = [];
+          byType[f.type].push(f);
+        }
+        
+        console.log(`\n${t.success}Found ${files.length} files (${Object.keys(byType).length} types)${RESET}`);
+        for (const [type, list] of Object.entries(byType)) {
+          console.log(`  ${t.accent}${type}${RESET}: ${list.length} files`);
+        }
+        
+        console.log(`\n${t.accent}Spawning per-file agents...${RESET}`);
+        
+        const processed: string[] = [];
+        for (const file of files.slice(0, 20)) {
+          const fileType = INDEXER_TYPES[file.type as keyof typeof INDEXER_TYPES] || file.type;
+          const agentName = "indexer-" + basename(file.path, "." + file.type);
+          
+          let fileInfo = "";
+          try {
+            const content = readFileSync(file.path, "utf-8").slice(0, 1000);
+            const lines = content.split("\n").length;
+            fileInfo = `${lines} lines, ${file.size} bytes\n\n${content.slice(0, 300)}...`;
+          } catch {
+            fileInfo = `${file.size} bytes (cannot read)`;
+          }
+          
+          subagentStates[agentName] = {
+            status: "indexing",
+            task: `Index ${file.type} file: ${file.path}`,
+            lastWork: fileInfo
+          };
+          processed.push(agentName);
+        }
+        
+        console.log(`\n${t.success}Spawned ${processed.length} file indexer agents${RESET}`);
+        
+        for (const name of processed.slice(0, 5)) {
+          console.log(`  ${t.accent}${name}${RESET}: ${subagentStates[name].task}`);
+        }
+        
+        projectIndex.length = 0;
+        lastIndexDir = targetDir;
+        for (const f of files) {
+          projectIndex.push({
+            path: f.path,
+            ext: f.type,
+            size: f.size
+          });
+        }
+        
+        const dir = join(INDEX_FILE, "..");
+        if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+        
+        writeFileSync(INDEX_FILE, JSON.stringify(projectIndex, null, 2));
+        console.log(`\n${t.success}Index saved to ${INDEX_FILE}${RESET}`);
+        
+        const md = generateIndexMarkdown();
+        writeFileSync(INDEX_MD, md);
+        console.log(`\n${t.success}Markdown saved to ${INDEX_MD}${RESET}`);
+        console.log(`\n${t.accent}Summary:${RESET}`);
+        console.log(md.slice(0, 500));
+        
         showPrompt();
         continue;
       }
