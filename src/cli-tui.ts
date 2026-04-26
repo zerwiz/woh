@@ -94,14 +94,16 @@ async function main() {
       continue;
     }
     
-    // Check quit first
-    if (cmd === "/quit" || cmd === "/exit" || cmd.toLowerCase() === "q") {
+    // Check for exit commands
+    const lowerCmd = cmd.toLowerCase();
+    if (lowerCmd === "/quit" || lowerCmd === "/exit" || lowerCmd === "q" || lowerCmd === "quit" || lowerCmd === "exit") {
       console.log("\nGoodbye!");
       saveState(state);
       process.exit(0);
     }
     
-    if (cmd === "/clear") {
+    // Check for clear
+    if (lowerCmd === "/clear" || lowerCmd === "c" || lowerCmd === "clear") {
       state.messages = [{ role: "system", content: "You are Alloy, a helpful AI coding assistant." }];
       console.clear();
       writePrompt();
