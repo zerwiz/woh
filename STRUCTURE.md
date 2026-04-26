@@ -1,0 +1,143 @@
+# Woo Harness Directory Structure
+
+## Root Level
+- `.alloy/context/agent.md` - Alloy agent context configuration
+- `.credo.exs` - Code quality analyzer configuration
+- `.formatter.exs` - Code formatter settings
+- `.github/workflows/ci.yml` - Continuous integration workflow
+- `.github/workflows/publish.yml` - Release publishing workflow
+- `.gitignore` - Git ignore rules
+- `.pi/agent-sessions/` - Agent session storage area (currently empty)
+- `announcements/0.9.0/` - Version 0.9.0 announcement files (elixir-forum, x)
+- `announcements/elixir-forum.md` - Elxir forum announcement
+- `announcements/linkedlin.md` - LinkedIn announcement
+- `announcements/social-preview.html` - Social media preview HTML
+- `announcements/social-preview.png` - Social media preview image
+- `announcements/v0.10.0-posts.md` - Version 0.10.0 blog posts
+- `announcements/x.md` - X announcement
+- `BUILD_SUMMARY.md` - Build process summary documentation
+- `CHANGELOG.md` - Project changelog
+- `config/config.exs` - Elixir project configuration
+- `CONTRIBUTING.md` - Contribution guidelines
+- `doc/AGENT_TEAM_EELIXIR.md` - Agent team Elixir documentation
+- `docs/agent-team/` - Agent team configuration documentation
+- `docs/agent-team/CONFIGURATION.md` - Configuration guide
+- `docs/agent-team/IMPLEMENTATION-GUIDE.md` - Implementation guide
+- `docs/agent-team/INDEX.md` - Configuration index
+- `docs/agent-team/MIGRATION.md` - Migration guide
+- `docs/agent-team/README.md` - README for agent-team
+- `docs/agent-team/TROUBLESHOOTING.md` - Troubleshooting guide
+- `docs/agent-team/USAGE-GUIDE.md` - Usage guide
+- `docs/agent-team/examples/agent-teams.example.yaml` - Example agent team config
+- `docs/agent-team-eelixir/AGENT_TEAM_EELIXIR.md` - Elixir agent team guide
+- `docs/agent-team-eelixir/EVALUATION.md` - Evaluation documentation
+- `docs/agent-team-eelixir/IMPLEMENTATION_STATUS.md` - Implementation status
+- `docs/agent-team-eelixir/README.md` - README
+- `docs/config.md` - Configuration documentation
+- `docs/examples/complete.py` - Complete example script
+- `docs/MIGRATION-alloy_agent.md` - Alloy agent migration guide
+- `docs/README.md` - Documentation index
+- `lib/` - Source code directory
+- `lib/alloy/` - Main Alloy module source code
+- `lib/alloy/agent/` - Agent state and event modules
+- `lib/alloy/agent/config.ex` - Agent configuration
+- `lib/alloy/agent/events.ex` - Agent events
+- `lib/alloy/agent/server.ex` - Agent server
+- `lib/alloy/agent/state.ex` - Agent state
+- `lib/alloy/agent/turn.ex` - Agent turn management
+- `lib/alloy/context/compactor.ex` - Context data compactor
+- `lib/alloy/memory/` - Memory management modules
+- `lib/alloy/memory/router.ex` - Memory router
+- `lib/alloy/memory/ex/` - Legacy memory storage (unused)
+- `lib/alloy/model_metadata.ex` - Model metadata
+- `lib/alloy/message.ex` - Message types
+- `lib/alloy/middleware.ex` - API middleware
+- `lib/alloy/provider/` - LLM provider implementations
+- `lib/alloy/provider/anthropic.ex` - Anthropic provider
+- `lib/alloy/provider/codex.ex` - Codex provider
+- `lib/alloy/provider/gemini.ex` - Gemini provider
+- `lib/alloy/provider/openai_compat.ex` - OpenAI compatible provider
+- `lib/alloy/provider/openai_stream.ex` - OpenAI streaming provider
+- `lib/alloy/provider/openai.ex` - OpenAI provider
+- `lib/alloy/provider/retry.ex` - Retry logic
+- `lib/alloy/provider/sse.ex` - SSE handling
+- `lib/alloy/provider/test.ex` - Test provider
+- `lib/alloy/provider/xai.ex` - XAI provider
+- `lib/alloy/result.ex` - Result types
+- `lib/alloy/session.ex` - Session management
+- `lib/alloy/skills/README.md` - Skills documentation
+- `lib/alloy/testing.ex` - Testing utilities
+- `lib/alloy/tool/` - Tool modules
+- `lib/alloy/tool.ex` - Core tool module
+- `lib/alloy/usage.ex` - Usage tracking
+- `lib/alloy/ex/` - Legacy Elixir-based components (unused)
+- `lib/alloy_agent/agent_def.ex` - Agent definition helper
+- `lib/alloy_agent/agent_definition.ex` - Full agent definition struct
+- `lib/alloy_agent/agent.ex` - Alloy agent base
+- `lib/alloy_agent/application.ex` - Application supervisor
+- `lib/alloy_agent/core.ex` - Core orchestration functions
+- `lib/alloy_agent/definition/` - Agent definition files
+- `lib/alloy_agent/definition/architect.md` - Architect agent definition
+- `lib/alloy_agent/definition/builder.md` - Builder agent definition
+- `lib/alloy_agent/definition/parse.ex` - Definition parser
+- `lib/alloy_agent/definition/scanner.md` - Scanner agent definition
+- `lib/alloy_agent/definition/tester.md` - Tester agent definition
+- `lib/alloy_agent/memory/` - Alloy agent memory implementation
+- `lib/alloy_agent/memory.ex` - Alloy agent memory core
+- `lib/alloy_agent/memory/readme.md` - Memory documentation (unused)
+- `lib/alloy_agent/registry.ex` - Agent registry
+- `lib/alloy_agent/session.ex` - Session management
+- `lib/alloy_agent/state.ex` - State management
+- `lib/alloy_agent/supervisor.ex` - Agent supervisor
+- `lib/alloy_agent/team.ex` - Team coordination
+- `lib/alloy_agent/tools.ex` - Tool registration
+- `lib/alloy_agent.ex` - Main application entry point
+- `LICENSE` - Project license
+- `mix.exs` - Mix project file
+- `mix.lock` - Dependency lock file
+- `README.md` - Project README
+- `test/` - Test suite
+- `test/alloy/` - Alloy test cases
+- `test/alloy/agent/config_test.exs` - Agent config tests
+- `test/alloy/agent/events_test.exs` - Agent event tests
+- `test/alloy/agent/otp_lifecycle_test.exs` - OTP lifecycle tests
+- `test/alloy/agent/server_model_switch_test.exs` - Server switch tests
+- `test/alloy/agent/server_send_message_test.exs` - Message send tests
+- `test/alloy/agent/server_test.exs` - Server tests
+- `test/alloy/agent/turn_test.exs` - Turn tests
+- `test/alloy/context/` - Context tests (empty)
+- `test/alloy/memory/integration_test.exs` - Memory integration tests
+- `test/alloy/memory/router_test.exs` - Router tests
+- `test/alloy/memory/memory_test.exs` - Memory tests
+- `test/alloy/memory/memory_store.ex` - Memory store tests
+- `test/alloy/memory/ex/memory_test.exs` - Legacy memory tests
+- `test/alloy/memory/ex/memory_store.ex` - Legacy store tests
+- `test/alloy/message_test.exs` - Message tests
+- `test/alloy/middleware_test.exs` - Middleware tests
+- `test/alloy/model_metadata_test.exs` - Metadata tests
+- `test/alloy/provider/anthropic_test.exs` - Anthropic tests
+- `test/alloy/provider/codex_test.exs` - Codex tests
+- `test/alloy/provider/gemini_test.exs` - Gemini tests
+- `test/alloy/provider/openai_compat_test.exs` - OpenAI compat tests
+- `test/alloy/provider/openai_stream_test.exs` - OpenAI stream tests
+- `test/alloy/provider/openai_test.exs` - OpenAI tests
+- `test/alloy/provider/retry_test.exs` - Retry tests
+- `test/alloy/provider/sse_test.exs` - SSE tests
+- `test/alloy/provider/test_test.exs` - Test provider tests
+- `test/alloy/provider/xai_test.exs` - XAI tests
+- `test/alloy/result_test.exs` - Result tests
+- `test/alloy/session_test.exs` - Session tests
+- `test/alloy/streaming_test.exs` - Streaming tests
+- `test/alloy/testing_test.exs` - Testing framework tests
+- `test/alloy/tool/core/bash_test.exs` - Bash tool tests
+- `test/alloy/tool/core/edit_test.exs` - Edit tool tests
+- `test/alloy/tool/core/read_test.exs` - Read tool tests
+- `test/alloy/tool/core/write_test.exs` - Write tool tests
+- `test/alloy/tool/executor_test.exs` - Executor tests
+- `test/alloy/tool/registry_test.exs` - Tool registry tests
+- `test/alloy/tool/tool_test.exs` - Tool tests
+- `test/alloy/tool/usage_test.exs` - Usage tracking tests
+- `test/support/echo_tool.ex` - Basic echo tool
+- `test/support/memory_store.ex` - Memory store test helper
+- `test/support/slow_echo_tool.ex` - Slow echo tool
+- `test/support/stream_test_helpers.ex` - Streaming helpers

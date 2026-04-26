@@ -1,0 +1,2 @@
+#!/bin/bash
+elixir -S mix run lib/alloy_agent.ex

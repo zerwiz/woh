@@ -1,0 +1,292 @@
+# ====================================
+# Alloy Agent Team - Example Configuration
+# ====================================
+#
+# This file demonstrates how to configure agent teams
+# Copy to .pi/agents/teams.yaml or reference for guidance
+# ====================================
+
+---
+## Research Team Configuration
+## Purpose: File exploration, analysis, documentation
+## Members: scout, analyst, researcher, reader, indexer
+
+research-team:
+  - scout            # Explore and gather context
+  - analyst          # Gather information systematically
+  - researcher       # Research and document
+  - reader           # Document and organize
+  - indexer          # Create indexes and summaries
+
+---
+## Development Team Configuration
+## Purpose: Code development, implementation, refactoring
+## Members: coder, coder-reviewer, tester, archivist
+
+development-team:
+  - coder            # Implement code from specifications
+  - coder-reviewer   # Code quality assurance
+  - tester           # Functional testing
+  - archivist        # Document changes and updates
+
+---
+## Operations Team Configuration
+## Purpose: Monitoring, maintenance, deployment
+## Members: monitor, maintainer, deployer
+
+operations-team:
+  - monitor          # Monitor system health and status
+  - maintainer       # Perform maintenance tasks
+  - deployer         # Handle deployment and releases
+
+---
+## Full Team Configuration (All in Default Team)
+## Purpose: Combined capabilities
+## Members: All agents from all teams
+
+default-team:
+  - scout
+  - analyst
+  - researcher
+  - reader
+  - indexer
+  - coder
+  - coder-reviewer
+  - tester
+  - archivist
+  - monitor
+  - maintainer
+  - deployer
+
+---
+## Minimal Team Configuration
+## Purpose: Start small, grow as needed
+## Members: Essential agents only
+
+minimal-team:
+  - scout
+  - coder
+  - reviewer
+
+---
+## Team Structure Documentation
+
+# Example: Research Team
+# Location: `.pi/agents/teams.yaml`
+
+research:
+  # Scout - Explore and gather context
+  - scout
+      
+  # Analyst - Gather information systematically
+  - analyst
+  
+  # Researcher - Research and document findings
+  - researcher
+  
+  # Reader - Document and organize files
+  - reader
+  
+  # Indexer - Create indexes and summaries
+  - indexer
+
+# Example: Development Team
+# Location: `development/teams.yaml`
+
+development:
+  # Coder - Implement code
+  - coder
+  
+  # Coder Reviewer - Code quality checks
+  - coder-reviewer
+  
+  # Tester - Functional testing
+  - tester
+  
+  # Archivist - Documentation updates
+  - archivist
+
+---
+## Team Selection Guide
+
+### When to Choose Which Team
+
+**Choose research-team for:**
+- File exploration tasks
+- Information gathering
+- Document creation
+- Research activities
+- Context building
+
+**Choose development-team for:**
+- Code implementation
+- Code refactoring
+- Testing and validation
+- Documentation updates
+- Feature development
+
+**Choose operations-team for:**
+- System monitoring
+- Maintenance tasks
+- Deployment activities
+- Log analysis
+- Issue resolution
+
+**Choose default-team for:**
+- Complex multi-step tasks
+- Tasks requiring multiple capabilities
+- Unassigned tasks (uses all agents)
+
+---
+## Team Best Practices
+
+### Team Size
+- Keep teams focused (3-5 members)
+- Related agent types per team
+- Avoid cross-territory pollution
+
+### Team Naming
+- Use clear, descriptive names
+- Match team purpose to name
+- Example: `research`, `development`, `operations`
+
+### Team Isolation
+- Each team has own specialist agents
+- Dispatcher only accesses team members
+- Prevents scope creep
+
+### Team Switching
+```bash
+/agents-team research      # Research tasks
+/agents-team development   # Development tasks
+/agents-team operations    # Operations tasks
+```
+
+### Team Definition
+```yaml
+# Valid YAML format
+team-name:
+  - agent1
+  - agent2
+  - agent3
+
+# Invalid examples (will be ignored silently)
+non-existant-agent:
+  - agent1
+
+empty-team:    # Empty teams are valid
+```
+
+---
+## Team Loading Process
+
+1. Teams automatically loaded from `.pi/agents/teams.yaml`
+2. Team selection via /agents-team command
+3. Only team members available for dispatch
+4. First team loaded as default if none specified
+
+---
+## Team File Structure
+
+```
+.pi/
+└── agents/
+    └── teams.yaml    # Team definitions
+```
+
+```yaml
+# teams.yaml contents
+team-name:
+  - member1
+  - member2
+  - member3
+```
+
+---
+## Team Migration Examples
+
+### Single Team to Multiple Teams
+
+**Before:**
+```yaml
+# Single team
+default:
+  - scout
+  - coder
+  - reviewer
+```
+
+**After:**
+```yaml
+# Multiple teams
+research:
+  - scout
+  - researcher
+
+development:
+  - coder
+  - coder-reviewer
+  - tester
+```
+
+---
+## Team Configuration Tips
+
+### 1. Keep Teams Small
+Avoid teams with 10+ members. Better to have:
+- research (3-5 agents)
+- development (3-5 agents)
+- operations (2-4 agents)
+
+### 2. Match Agents to Purpose
+- Each agent should align with team purpose
+- Scout in research team = natural fit
+- Coder in development team = natural fit
+
+### 3. Document Team Purpose
+Add comments explaining team purpose:
+```yaml
+# Research and documentation team
+# Handles exploration, analysis, and documentation
+research:
+  - scout
+```
+
+### 4. Test Team Loading
+After editing teams.yaml:
+```bash
+pi -e extensions/agent-team.ts
+/agents-team           # See available teams
+/agents-team research  # Test team switching
+```
+
+---
+## Team Validation
+
+### Valid Team
+```yaml
+valid-team:
+  - agent-one
+  - agent-two
+```
+
+### Invalid Team (Ignored Silently)
+```yaml
+invalid-team:
+  - non-existent
+  # This team will be ignored
+```
+
+### Empty Team (Valid)
+```yaml
+empty-team:  # Empty team, still valid
+```
+
+---
+<div align="center">
+
+**End of Example Configuration**
+
+_Copy this file to `.pi/agents/teams.yaml` and customize_
+
+</div>

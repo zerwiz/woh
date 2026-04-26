@@ -1,0 +1,31 @@
+
+# ============= SUMMARY =============
+# Files in /home/zerwiz/woh/lib/alloy/tool/:
+executor
+file_search
+registry
+secure_shell
+web_search
+capabilities
+README
+
+# Files in /home/zerwiz/woh/lib/alloy/skills/:
+analyze
+deduce
+registry
+synthesis
+catalog
+README
+
+# Documentation in /home/zerwiz/woh/docs/alloy-agent/:
+MIGRATION
+README
+UPDATES
+USAGE
+
+# Updated agent definitions:
+
+✓ Agent definitions updated
+✓ Tools directory updated
+✓ Skills directory updated
+✓ Documentation created

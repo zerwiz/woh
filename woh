@@ -1,0 +1,3 @@
+#!/bin/bash
+mix deps.get
+elixir -S mix run lib/alloy_agent.ex
